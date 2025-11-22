@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Camera, FileText, Upload, AlertTriangle, Clock, Shield, User, LogOut } from 'lucide-react';
 
 // --- CONFIGURATION ---
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 // --- COMPONENTS ---
 
@@ -81,8 +81,8 @@ const LoginScreen = ({ onLogin }) => (
           <Shield className="h-12 w-12 text-blue-600" />
         </div>
       </div>
-      <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">TruthLens</h2>
-      <p className="mt-2 text-center text-sm text-gray-600">
+      <h2 className="mt-6 text-center text-3xl font-extrabold text-black">TruthLens</h2>
+      <p className="mt-2 text-center text-sm text-black">
         AI-Powered Misinformation Detection & Forensic Analysis
       </p>
     </div>
@@ -193,6 +193,24 @@ const ResultCard = ({ result }) => {
                   <p className="mt-2 text-sm text-gray-700 leading-relaxed">{result.analysis.explanation}</p>
                 </div>
               </div>
+
+              {result.analysis.historical_context && (
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Historical Context</span>
+                  <p className="mt-2 text-sm text-gray-700 leading-relaxed">{result.analysis.historical_context}</p>
+                </div>
+              )}
+
+              {result.analysis.sources && result.analysis.sources.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Sources</span>
+                  <ul className="mt-2 text-sm text-gray-700 list-disc list-inside">
+                    {result.analysis.sources.map((source, idx) => (
+                      <li key={idx}>{source}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ) : (
             // IMAGE RESULT
@@ -258,35 +276,73 @@ const UploadPage = ({ onResult }) => {
     setLoading(true);
     setError('');
 
-    // Simulation of API call
     try {
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // MOCK LOGIC for Demo purposes
       if (activeMode === 'text') {
           if (!inputText.trim()) throw new Error("Please enter text to analyze.");
+          
+          const response = await fetch(`${API_BASE_URL}/verify`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: inputText }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to verify claim');
+          }
+
+          const data = await response.json();
+          
+          // Map backend response to frontend format
+          const confidenceValue = parseInt(data.confidence.replace('%', '')) || 0;
+          let label = 'Unknown';
+          if (data.verdict === 'TRUE') label = 'Real';
+          else if (data.verdict === 'FALSE') label = 'Fake';
+          else if (data.verdict === 'MIXED') label = 'Mixed';
+          else label = 'Unverifiable';
+
           onResult({
               id: Date.now(), 
               timestamp: new Date(), 
               type: 'text', 
               content: inputText,
               analysis: { 
-                label: Math.random() > 0.5 ? "Real" : "Fake", 
-                confidence: Math.floor(Math.random() * 20) + 80, // 80-99%
-                explanation: "Cross-referenced with 4 major news outlets. Source credibility analysis indicates high consistency with verified reports." 
+                label: label, 
+                verdict: data.verdict,
+                confidence: confidenceValue,
+                explanation: data.explanation,
+                historical_context: data.historical_context,
+                sources: data.sources
               }
           });
       } else {
            if (!selectedFile) throw new Error("Please select an image.");
+           
+           const formData = new FormData();
+           formData.append('image', selectedFile);
+
+           const response = await fetch(`${API_BASE_URL}/analyze-image`, {
+             method: 'POST',
+             body: formData,
+           });
+
+           if (!response.ok) {
+             const errorData = await response.json();
+             throw new Error(errorData.error || 'Failed to analyze image');
+           }
+
+           const data = await response.json();
+           
            onResult({
               id: Date.now(), 
               timestamp: new Date(), 
               type: 'image',
               analysis: { 
-                verdict: Math.random() > 0.5 ? "Original" : "Tampering Detected", 
-                authenticity_score: Math.floor(Math.random() * 100), 
-                exif_metadata: { camera: "Sony A7 III", software: "Adobe Photoshop 23.0" } 
+                verdict: data.verdict, 
+                authenticity_score: data.authenticity_score, 
+                exif_metadata: data.exif_metadata 
               }
           });
       }
@@ -399,22 +455,32 @@ const UploadPage = ({ onResult }) => {
 };
 
 // 5. History Page
-const HistoryPage = () => {
-  // Mock Data
-  const mockHistory = [
-    { id: 1, type: 'text', timestamp: new Date(Date.now() - 1000000).toISOString(), content: "Breaking: Aliens landed in Times Square today...", analysis: { label: "Fake", confidence: 99, explanation: "No credible reports found. Image analysis suggests CGI artifacts." } },
-    { id: 2, type: 'image', timestamp: new Date(Date.now() - 5000000).toISOString(), analysis: { verdict: "Original", authenticity_score: 95, exif_metadata: { camera: "Sony A7" } } }
-  ];
-
+const HistoryPage = ({ history, onClearHistory }) => {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <Clock className="text-blue-600" /> Session History
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Clock className="text-blue-600" /> Session History
+        </h2>
+        {history.length > 0 && (
+          <button 
+            onClick={onClearHistory}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors"
+          >
+            <LogOut size={16} className="rotate-180" /> Clear History
+          </button>
+        )}
+      </div>
       <div className="space-y-6">
-        {mockHistory.map((item, idx) => (
-          <ResultCard key={idx} result={item} />
-        ))}
+        {history.length === 0 ? (
+            <div className="text-center py-12 text-gray-500 bg-white rounded-lg shadow">
+                <p>No history yet. Verify a claim to see it here.</p>
+            </div>
+        ) : (
+            history.map((item, idx) => (
+            <ResultCard key={idx} result={item} />
+            ))
+        )}
       </div>
     </div>
   );
@@ -422,10 +488,52 @@ const HistoryPage = () => {
 
 // --- MAIN APP COMPONENT ---
 
+const INITIAL_HISTORY = [
+  {
+    id: 'hist-1',
+    type: 'text',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+    content: "The Great Wall of China is visible from space with the naked eye.",
+    analysis: {
+      label: "Fake",
+      verdict: "FALSE",
+      confidence: 98,
+      explanation: "This is a common myth. NASA astronauts have confirmed that the Great Wall is not visible from low Earth orbit without aid, and certainly not from the moon. It is too narrow and blends in with the natural terrain.",
+      historical_context: "The myth dates back to at least 1932 in a Ripley's Believe It or Not! cartoon, long before space travel was possible.",
+      sources: ["NASA", "Scientific American", "Snopes"]
+    }
+  },
+  {
+    id: 'hist-2',
+    type: 'text',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    content: "Napoleon Bonaparte was extremely short.",
+    analysis: {
+      label: "Fake",
+      verdict: "FALSE",
+      confidence: 92,
+      explanation: "Napoleon was actually slightly taller than the average Frenchman of his time. The confusion stems from the difference between French and British measurement units (French inches were longer) and British propaganda depicting him as 'Little Boney'.",
+      historical_context: "At his death, he measured 5 feet 2 inches in French units, which equates to about 5 feet 7 inches (1.69m) in modern international units.",
+      sources: ["History.com", "Encyclopedia Britannica"]
+    }
+  },
+  {
+    id: 'hist-3',
+    type: 'image',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
+    analysis: {
+      verdict: "Tampering Detected",
+      authenticity_score: 12,
+      exif_metadata: { camera: "Unknown", software: "Adobe Photoshop 24.1" }
+    }
+  }
+];
+
 export default function App() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('upload');
   const [currentResult, setCurrentResult] = useState(null);
+  const [history, setHistory] = useState(INITIAL_HISTORY);
 
   // --- 1. AUTO-INJECT TAILWIND FOR LOCALHOST ---
   useEffect(() => {
@@ -450,6 +558,7 @@ export default function App() {
 
   const handleAnalysisResult = (result) => {
     setCurrentResult(result);
+    setHistory(prev => [result, ...prev]);
   };
 
   return (
@@ -495,7 +604,7 @@ export default function App() {
             )}
             
             {activeTab === 'history' && (
-              <HistoryPage />
+              <HistoryPage history={history} onClearHistory={() => setHistory([])} />
             )}
           </main>
         </div>
