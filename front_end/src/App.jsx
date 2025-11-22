@@ -173,38 +173,38 @@ const ResultCard = ({ result }) => {
             // TEXT RESULT
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-gray-500">Statement</p>
-                <div className="mt-2 text-sm text-gray-800 italic bg-gray-50 p-4 rounded-md border border-gray-200">
+                <p className="text-sm font-bold text-gray-700 uppercase tracking-wide">Statement</p>
+                <div className="mt-2 text-lg text-gray-900 italic bg-white p-6 rounded-md border-2 border-gray-200 shadow-sm">
                   "{result.content}"
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-4 rounded-md border border-blue-100">
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Confidence Score</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-blue-700">{result.analysis.confidence}%</span>
+                <div className="bg-blue-50 p-6 rounded-md border-2 border-blue-100">
+                  <span className="text-sm font-bold text-blue-800 uppercase tracking-wider">Confidence Score</span>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-5xl font-extrabold text-blue-700">{result.analysis.confidence}%</span>
                   </div>
-                  <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                    <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000" style={{ width: `${result.analysis.confidence}%` }}></div>
+                  <div className="w-full bg-blue-200 rounded-full h-4 mt-4">
+                    <div className="bg-blue-600 h-4 rounded-full transition-all duration-1000" style={{ width: `${result.analysis.confidence}%` }}></div>
                   </div>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">AI Reasoning</span>
-                  <p className="mt-2 text-sm text-gray-700 leading-relaxed">{result.analysis.explanation}</p>
+                <div className="bg-gray-50 p-6 rounded-md border-2 border-gray-200">
+                  <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">AI Reasoning</span>
+                  <p className="mt-2 text-lg text-gray-800 leading-relaxed font-medium">{result.analysis.explanation}</p>
                 </div>
               </div>
 
               {result.analysis.historical_context && (
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Historical Context</span>
-                  <p className="mt-2 text-sm text-gray-700 leading-relaxed">{result.analysis.historical_context}</p>
+                <div className="bg-gray-50 p-6 rounded-md border-2 border-gray-200 mt-4">
+                  <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Historical Context</span>
+                  <p className="mt-2 text-lg text-gray-800 leading-relaxed font-medium">{result.analysis.historical_context}</p>
                 </div>
               )}
 
               {result.analysis.sources && result.analysis.sources.length > 0 && (
-                <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Sources</span>
-                  <ul className="mt-2 text-sm text-gray-700 list-disc list-inside">
+                <div className="bg-gray-50 p-6 rounded-md border-2 border-gray-200 mt-4">
+                  <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Sources</span>
+                  <ul className="mt-2 text-lg text-gray-800 list-disc list-inside font-medium">
                     {result.analysis.sources.map((source, idx) => (
                       <li key={idx}>{source}</li>
                     ))}
@@ -217,28 +217,28 @@ const ResultCard = ({ result }) => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm font-medium text-gray-500 mb-2">Metadata Forensics</p>
-                  <dl className="bg-gray-50 rounded-md p-4 border border-gray-200 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <p className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Metadata Forensics</p>
+                  <dl className="bg-gray-50 rounded-md p-6 border-2 border-gray-200 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-1">
-                      <dt className="text-xs font-bold text-gray-500 uppercase">Camera Model</dt>
-                      <dd className="mt-1 text-sm text-gray-900 font-medium">{result.analysis.exif_metadata?.camera || 'N/A'}</dd>
+                      <dt className="text-xs font-bold text-gray-600 uppercase">Camera Model</dt>
+                      <dd className="mt-1 text-lg text-gray-900 font-bold">{result.analysis.exif_metadata?.camera || 'N/A'}</dd>
                     </div>
                     <div className="sm:col-span-1">
-                      <dt className="text-xs font-bold text-gray-500 uppercase">Software Signature</dt>
-                      <dd className="mt-1 text-sm text-gray-900 font-medium">{result.analysis.exif_metadata?.software || 'Unknown'}</dd>
+                      <dt className="text-xs font-bold text-gray-600 uppercase">Software Signature</dt>
+                      <dd className="mt-1 text-lg text-gray-900 font-bold">{result.analysis.exif_metadata?.software || 'Unknown'}</dd>
                     </div>
                   </dl>
                   
-                  <div className="mt-4 bg-gray-50 p-4 rounded-md border border-gray-200">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Authenticity Score</span>
-                    <div className="mt-1 flex items-baseline justify-between">
-                      <span className={`text-3xl font-bold ${result.analysis.authenticity_score > 80 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className="mt-4 bg-gray-50 p-6 rounded-md border-2 border-gray-200">
+                    <span className="text-sm font-bold text-gray-700 uppercase tracking-wider">Authenticity Score</span>
+                    <div className="mt-2 flex items-baseline justify-between">
+                      <span className={`text-5xl font-extrabold ${result.analysis.authenticity_score > 80 ? 'text-green-600' : 'text-red-600'}`}>
                         {result.analysis.authenticity_score}/100
                       </span>
-                      <span className="text-xs text-gray-400">Calculated by TruthLens Engine</span>
+                      <span className="text-sm text-gray-500 font-medium">Calculated by TruthLens Engine</span>
                     </div>
-                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div className={`h-2 rounded-full transition-all duration-1000 ${result.analysis.authenticity_score > 80 ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${result.analysis.authenticity_score}%` }}></div>
+                     <div className="w-full bg-gray-200 rounded-full h-4 mt-4">
+                      <div className={`h-4 rounded-full transition-all duration-1000 ${result.analysis.authenticity_score > 80 ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: `${result.analysis.authenticity_score}%` }}></div>
                     </div>
                   </div>
                 </div>
@@ -567,6 +567,9 @@ export default function App() {
           This style block forces the browser to ignore the default 
           settings that are squishing your app into the center. */}
       <style>{`
+        html {
+          font-size: 20px; /* PROJECTOR MODE: Scale up entire UI by 25% */
+        }
         body {
           display: block !important;
           place-items: unset !important;
