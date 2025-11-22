@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Camera, FileText, Upload, AlertTriangle, Clock, Shield, Search } from 'lucide-react';
 
 // --- CONFIGURATION ---
@@ -521,17 +521,6 @@ export default function App() {
   const [currentResult, setCurrentResult] = useState(null);
   const [history, setHistory] = useState(INITIAL_HISTORY);
 
-  // --- 1. AUTO-INJECT TAILWIND FOR LOCALHOST ---
-  useEffect(() => {
-    const scriptId = 'tailwind-cdn';
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement('script');
-      script.id = scriptId;
-      script.src = "https://cdn.tailwindcss.com";
-      document.head.appendChild(script);
-    }
-  }, []);
-
   const handleAnalysisResult = (result) => {
     setCurrentResult(result);
     setHistory(prev => [result, ...prev]);
@@ -539,30 +528,6 @@ export default function App() {
 
   return (
     <>
-      {/* --- 2. CRITICAL FIX: OVERRIDE DEFAULT LOCAL STYLES --- 
-          This style block forces the browser to ignore the default 
-          settings that are squishing your app into the center. */}
-      <style>{`
-        html {
-          font-size: 20px; /* PROJECTOR MODE: Scale up entire UI by 25% */
-        }
-        body {
-          display: block !important;
-          place-items: unset !important;
-          min-width: unset !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          background-color: #ffffff !important;
-        }
-        #root {
-          width: 100% !important;
-          max-width: 100% !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          text-align: left !important;
-        }
-      `}</style>
-
       {/* MAIN RENDER LOGIC */}
       <div className="min-h-screen w-full bg-white font-sans selection:bg-red-600 selection:text-white">
         <Navbar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setCurrentResult(null); }} />

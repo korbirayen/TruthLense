@@ -8,6 +8,7 @@ from perplexity import Perplexity
 from PIL import Image, ImageChops, ImageStat
 from PIL.ExifTags import TAGS
 import joblib
+import io
 
 # Load environment variables
 load_dotenv()
@@ -418,9 +419,13 @@ def analyze_image():
         ela_summary = ""
         try:
             rgb_image = image.convert('RGB')
-            temp_path = os.path.join(os.path.dirname(__file__), '_tmp_ela.jpg')
-            rgb_image.save(temp_path, 'JPEG', quality=90)
-            recompressed = Image.open(temp_path).convert('RGB')
+            
+            # Use in-memory buffer instead of file to avoid locking issues
+            buffer = io.BytesIO()
+            rgb_image.save(buffer, 'JPEG', quality=90)
+            buffer.seek(0)
+            
+            recompressed = Image.open(buffer).convert('RGB')
             diff = ImageChops.difference(rgb_image, recompressed)
             stat = ImageStat.Stat(diff)
             mean_diff = sum(stat.mean) / (3 * 255.0)
@@ -432,6 +437,7 @@ def analyze_image():
             else:
                 ela_summary = "Strong localized anomalies; potential heavy editing or compositing detected."
         except Exception as e:
+            print(f"ELA Error: {e}")
             ela_summary = f"ELA analysis unavailable: {e}"
 
         # Combine metadata suspicion and ELA score into an authenticity score

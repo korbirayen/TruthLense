@@ -6,3 +6,5 @@ flask
 joblib
 flask-cors
 Pillow
+requests
+textblob
